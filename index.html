@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How do we keep safe on the road?</title>
+    
+    <!-- 引入全景库 -->
+    <link rel="stylesheet" href="https://lib.baomitu.com/pannellum/2.5.6/pannellum.css"/>
+    <script type="text/javascript" src="https://lib.baomitu.com/pannellum/2.5.6/pannellum.js"></script>
+
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: "Microsoft YaHei", sans-serif; }
+        
+        /* 启动界面 */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 10000;
+        }
+        .btn-start {
+            background: #ff4757; color: white; padding: 20px 60px; border: none;
+            border-radius: 50px; cursor: pointer; font-size: 26px; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4); transition: 0.3s;
+        }
+        .btn-start:hover { transform: scale(1.05); background: #ff6b81; }
+
+        /* 全景容器 */
+        #panorama { width: 100%; height: 100vh; display: none; }
+
+        /* --- 核心：提示气泡样式 --- */
+        .hit-target {
+            background-color: rgba(255, 0, 0, 0) !important; /* 保持隐形 */
+            cursor: pointer;
+            width: 200px !important;
+            height: 300px !important;
+            z-index: 5 !important;
+        }
+
+        /* 漫画气泡样式 */
+        .comic-bubble {
+            display: none; /* 初始隐藏 */
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -105%); 
+            background: white;
+            padding: 15px 20px;
+            border-radius: 20px;
+            border: 4px solid #54a0ff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-width: 220px;
+            pointer-events: none; 
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        /* 气泡尖角 */
+        .comic-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            margin-left: -10px;
+            border-width: 15px 10px 0;
+            border-style: solid;
+            border-color: #54a0ff transparent transparent;
+        }
+
+        .bubble-en { display: block; font-size: 18px; font-weight: 900; color: #2f3542; margin-bottom: 5px; }
+        .bubble-zh { display: block; font-size: 16px; font-weight: bold; color: #ff4757; }
+
+        /* 点击后赋予该类，显示气泡 */
+        .hit-target.activated .comic-bubble {
+            display: block;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: translate(-50%, -80%) scale(0.5); }
+            to { opacity: 1; transform: translate(-50%, -105%) scale(1); }
+        }
+
+        .pnlm-controls, .pnlm-load-button, .pnlm-about-msg, .pnlm-panorama-info { display: none !important; }
+        .pnlm-hotspot-base { background: none !important; }
+    </style>
+</head>
+<body>
+
+<!-- 启动界面 -->
+<div id="loader">
+    <h1 style="margin-bottom:30px; color: #2f3542;">How do we keep safe on the road?</h1>
+    <button class="btn-start" onclick="loadRemotePano()">Start Go！</button>
+</div>
+
+<!-- 全景容器 -->
+<div id="panorama"></div>
+
+<script>
+    // 指定的网络图片地址
+    const imageUrl = "https://chencc2026.github.io/img2/pic.png";
+
+    function loadRemotePano() {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('panorama').style.display = 'block';
+
+        pannellum.viewer('panorama', {
+            "type": "equirectangular",
+            "panorama": imageUrl,
+            "autoLoad": true,
+            "showControls": false,
+            "mouseZoom": false,
+            "crossOrigin": "anonymous", // 开启跨域允许以支持网络图片加载
+            "hotSpots": [
+                {
+                    "pitch": -2.16, "yaw": -60.34,
+                    "cssClass": "hit-target",
+                    "createTooltipFunc": buildBubble,
+                    "createTooltipArgs": { "en": "The man watches the phone while walking.", "zh": "走路看手机" },
+                    "clickHandlerFunc": revealBubble
+                },
+                {
+                    "pitch": -22.34, "yaw": -109.05,
+                    "cssClass": "hit-target",
+                    "createTooltipFunc": buildBubble,
+                    "createTooltipArgs": { "en": "The boy rides under 12.<br>The boy doesn’t wear a helmet.", "zh": "12岁以下骑车 / 未戴头盔" },
+                    "clickHandlerFunc": revealBubble
+                },
+                {
+                    "pitch": -54.10, "yaw": -22.45,
+                    "cssClass": "hit-target",
+                    "createTooltipFunc": buildBubble,
+                    "createTooltipArgs": { "en": "The boy plays on the road.", "zh": "在马路上玩耍" },
+                    "clickHandlerFunc": revealBubble
+                },
+                {
+                    "pitch": 10.53, "yaw": 70.33,
+                    "cssClass": "hit-target",
+                    "createTooltipFunc": buildBubble,
+                    "createTooltipArgs": { "en": "The man doesn’t wear a helmet.", "zh": "未戴头盔" },
+                    "clickHandlerFunc": revealBubble
+                },
+                {
+                    "pitch": -1.86, "yaw": 132.87,
+                    "cssClass": "hit-target",
+                    "createTooltipFunc": buildBubble,
+                    "createTooltipArgs": { "en": "The man watches the phone while driving.", "zh": "开车看手机" },
+                    "clickHandlerFunc": revealBubble
+                }
+            ]
+        });
+    }
+
+    // 构建提示气泡结构
+    function buildBubble(hotSpotDiv, args) {
+        const bubble = document.createElement('div');
+        bubble.classList.add('comic-bubble');
+        bubble.innerHTML = `
+            <span class="bubble-en">${args.en}</span>
+            <span class="bubble-zh">(${args.zh})</span>
+        `;
+        hotSpotDiv.appendChild(bubble);
+    }
+
+    // 点击显示气泡逻辑
+    function revealBubble(event) {
+        const target = event.target.closest('.hit-target');
+        if (target) {
+            target.classList.add('activated');
+        }
+    }
+</script>
+
+</body>
+</html>
