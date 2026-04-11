@@ -3,171 +3,177 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How do we keep safe on the road?</title>
+    <title>调试模式 - How do we keep safe on the road?</title>
     
-    <!-- 引入全景库 -->
     <link rel="stylesheet" href="https://lib.baomitu.com/pannellum/2.5.6/pannellum.css"/>
     <script type="text/javascript" src="https://lib.baomitu.com/pannellum/2.5.6/pannellum.js"></script>
 
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: "Microsoft YaHei", sans-serif; }
-        
-        /* 启动界面 */
-        #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 10000;
-        }
-        .btn-start {
-            background: #ff4757; color: white; padding: 20px 60px; border: none;
-            border-radius: 50px; cursor: pointer; font-size: 26px; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4); transition: 0.3s;
-        }
-        .btn-start:hover { transform: scale(1.05); background: #ff6b81; }
-
-        /* 全景容器 */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: "Arial", sans-serif; }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
+        .btn-start { background: #ff4757; color: white; padding: 15px 40px; border: none; border-radius: 50px; cursor: pointer; font-size: 20px; font-weight: bold; }
         #panorama { width: 100%; height: 100vh; display: none; }
 
-        /* --- 核心：提示气泡样式 --- */
+        /* --- 调试信息条 --- */
+        #debug-panel {
+            position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.85);
+            color: #00ff00; padding: 15px; border-radius: 10px; z-index: 10005;
+            font-family: monospace; font-size: 14px; border: 1px solid #00ff00;
+            pointer-events: none; display: none;
+        }
+
+        /* --- 点击区域样式 --- */
         .hit-target {
-            background-color: rgba(255, 0, 0, 0) !important; /* 保持隐形 */
             cursor: pointer;
-            width: 200px !important;
-            height: 300px !important;
             z-index: 5 !important;
         }
+        /* 调试时让点击区域变红，方便看大小 */
+        .debug-visible { background-color: rgba(255, 0, 0, 0.4) !important; border: 1px solid white; }
 
-        /* 漫画气泡样式 */
-        .comic-bubble {
-            display: none; /* 初始隐藏 */
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translate(-50%, -105%); 
-            background: white;
-            padding: 15px 20px;
-            border-radius: 20px;
-            border: 4px solid #54a0ff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            min-width: 220px;
-            pointer-events: none; 
-            z-index: 100;
-            white-space: nowrap;
-        }
+        /* --- 云朵气泡样式 (保持之前的完美效果) --- */
+        .bubble-container { display: none; position: absolute; top: 0; left: 50%; transform: translate(-50%, -125%); pointer-events: none; z-index: 100; }
+        .cloud-wrapper { position: relative; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15)); opacity: 0.95; }
+        .cloud-main { position: relative; background: #fff; padding: 30px 45px; border-radius: 100px; min-width: 320px; text-align: center; z-index: 10; }
+        .puff { position: absolute; background: #fff; border-radius: 50%; z-index: 5; }
+        .pt1 { width: 100px; height: 100px; top: -40px; left: 30px; }
+        .pt2 { width: 120px; height: 120px; top: -50px; left: 110px; }
+        .pt3 { width: 90px; height: 90px; top: -35px; right: 40px; }
+        .pb1 { width: 85px; height: 85px; bottom: -30px; left: 40px; }
+        .pb2 { width: 100px; height: 100px; bottom: -40px; left: 110px; }
+        .pb3 { width: 90px; height: 90px; bottom: -30px; right: 50px; }
+        .pl { width: 95px; height: 95px; top: 15px; left: -30px; }
+        .pr { width: 95px; height: 95px; top: 10px; right: -30px; }
+        .cloud-tail { position: absolute; bottom: -55px; left: 25%; display: flex; flex-direction: column; align-items: center; }
+        .dot { background: #fff; border-radius: 50%; margin-bottom: 6px; }
+        .d1 { width: 25px; height: 22px; }
+        .d2 { width: 15px; height: 13px; margin-left: -18px; }
 
-        /* 气泡尖角 */
-        .comic-bubble::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            margin-left: -10px;
-            border-width: 15px 10px 0;
-            border-style: solid;
-            border-color: #54a0ff transparent transparent;
-        }
+        .text-content { font-size: 26px; font-weight: 900; color: #000; line-height: 1.35; position: relative; z-index: 20; font-family: "Georgia", serif; }
+        .red-txt { color: #ff0000; }
+        .zh-txt { font-weight: 900; display: inline-block; margin-top: 5px; font-family: "Microsoft YaHei", sans-serif; }
 
-        .bubble-en { display: block; font-size: 18px; font-weight: 900; color: #2f3542; margin-bottom: 5px; }
-        .bubble-zh { display: block; font-size: 16px; font-weight: bold; color: #ff4757; }
-
-        /* 点击后赋予该类，显示气泡 */
-        .hit-target.activated .comic-bubble {
-            display: block;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes popIn {
-            from { opacity: 0; transform: translate(-50%, -80%) scale(0.5); }
-            to { opacity: 1; transform: translate(-50%, -105%) scale(1); }
-        }
-
+        .hit-target.activated .bubble-container { display: block; animation: cloudPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes cloudPop { from { opacity: 0; transform: translate(-50%, -90%) scale(0.6); } to { opacity: 1; transform: translate(-50%, -125%) scale(1); } }
         .pnlm-controls, .pnlm-load-button, .pnlm-about-msg, .pnlm-panorama-info { display: none !important; }
         .pnlm-hotspot-base { background: none !important; }
     </style>
 </head>
 <body>
 
-<!-- 启动界面 -->
 <div id="loader">
-    <h1 style="margin-bottom:30px; color: #2f3542;">How do we keep safe on the road?</h1>
-    <button class="btn-start" onclick="loadRemotePano()">Start Go！</button>
+    <h2 style="color:#333; margin-bottom:20px;">How do we keep safe on the road?</h2>
+    <button class="btn-start" onclick="initExperience()">Start Go！</button>
 </div>
 
-<!-- 全景容器 -->
 <div id="panorama"></div>
+<div id="debug-panel">坐标调试模式已开启<br>Pitch: 0.0, Yaw: 0.0</div>
 
 <script>
-    // 指定的网络图片地址
-    const imageUrl = "https://chencc2026.github.io/img2/pic.png";
+    // ==========================================
+    // 调试开关：设为 true 显示红色方块和坐标，设为 false 隐藏
+    const debugMode = false; 
+    // ==========================================
 
-    function loadRemotePano() {
+    const imageUrl = "https://chencc2026.github.io/img2/pic.png";
+    let viewer;
+
+    function initExperience() {
         document.getElementById('loader').style.display = 'none';
         document.getElementById('panorama').style.display = 'block';
+        if(debugMode) document.getElementById('debug-panel').style.display = 'block';
 
-        pannellum.viewer('panorama', {
+        viewer = pannellum.viewer('panorama', {
             "type": "equirectangular",
             "panorama": imageUrl,
             "autoLoad": true,
             "showControls": false,
             "mouseZoom": false,
-            "crossOrigin": "anonymous", // 开启跨域允许以支持网络图片加载
+            "crossOrigin": "anonymous",
             "hotSpots": [
                 {
-                    "pitch": -2.16, "yaw": -60.34,
+                    // 1. 走路看手机的男子
+                    "pitch": -2.16, "yaw": -60.34, 
+                    "width": 300, "height": 550,  // <--- 在这里调整大小
                     "cssClass": "hit-target",
-                    "createTooltipFunc": buildBubble,
-                    "createTooltipArgs": { "en": "The man watches the phone while walking.", "zh": "走路看手机" },
-                    "clickHandlerFunc": revealBubble
+                    "createTooltipFunc": buildCloud,
+                    "createTooltipArgs": "The man <span class='red-txt'>watches the phone</span> while walking. <br><span class='zh-txt'>(走路看手机)</span>",
+                    "clickHandlerFunc": active
                 },
                 {
-                    "pitch": -22.34, "yaw": -109.05,
+                    // 2. 骑自行车的男孩
+                    "pitch": -38.96, "yaw": -110.81, 
+                    "width": 300, "height": 600,  // <--- 在这里调整大小
                     "cssClass": "hit-target",
-                    "createTooltipFunc": buildBubble,
-                    "createTooltipArgs": { "en": "The boy rides under 12.<br>The boy doesn’t wear a helmet.", "zh": "12岁以下骑车 / 未戴头盔" },
-                    "clickHandlerFunc": revealBubble
+                    "createTooltipFunc": buildCloud,
+                    "createTooltipArgs": "The boy doesn't <span class='red-txt'>wear a helmet</span>.<br>The boy <span class='red-txt'>rides under 12</span>. <br><span class='zh-txt'>(12岁以下骑车)</span>",
+                    "clickHandlerFunc": active
                 },
                 {
-                    "pitch": -54.10, "yaw": -22.45,
+                    // 3. 玩球的男孩
+                    "pitch": -36.14, "yaw": -17.6, 
+                    "width": 250, "height": 650,  // <--- 在这里调整大小
                     "cssClass": "hit-target",
-                    "createTooltipFunc": buildBubble,
-                    "createTooltipArgs": { "en": "The boy plays on the road.", "zh": "在马路上玩耍" },
-                    "clickHandlerFunc": revealBubble
+                    "createTooltipFunc": buildCloud,
+                    "createTooltipArgs": "The boy <span class='red-txt'>plays</span> on the road.",
+                    "clickHandlerFunc": active
                 },
                 {
-                    "pitch": 10.53, "yaw": 70.33,
+                    // 4. 骑电动车的男子
+                    "pitch": -4.6, "yaw": 68.25, 
+                    "width": 250, "height": 600,  // <--- 在这里调整大小
                     "cssClass": "hit-target",
-                    "createTooltipFunc": buildBubble,
-                    "createTooltipArgs": { "en": "The man doesn’t wear a helmet.", "zh": "未戴头盔" },
-                    "clickHandlerFunc": revealBubble
+                    "createTooltipFunc": buildCloud,
+                    "createTooltipArgs": "The man doesn't<br><span class='red-txt'>wear a helmet</span>.",
+                    "clickHandlerFunc": active
                 },
                 {
-                    "pitch": -1.86, "yaw": 132.87,
+                    // 5. 开车看手机的男子
+                    "pitch": -1.86, "yaw": 132.87, 
+                    "width": 220, "height": 250,  // <--- 在这里调整大小
                     "cssClass": "hit-target",
-                    "createTooltipFunc": buildBubble,
-                    "createTooltipArgs": { "en": "The man watches the phone while driving.", "zh": "开车看手机" },
-                    "clickHandlerFunc": revealBubble
+                    "createTooltipFunc": buildCloud,
+                    "createTooltipArgs": "The man <span class='red-txt'>watches the phone</span> while driving. <br><span class='zh-txt'>(开车看手机)</span>",
+                    "clickHandlerFunc": active
                 }
             ]
         });
+
+        // 调试功能：点击画面输出并显示坐标
+        viewer.on('mousedown', function(event) {
+            if(!debugMode) return;
+            const coords = viewer.mouseEventToCoords(event);
+            document.getElementById('debug-panel').innerHTML = `调试模式<br>Pitch: ${coords[0].toFixed(2)}<br>Yaw: ${coords[1].toFixed(2)}`;
+            console.log(`Pitch: ${coords[0].toFixed(2)}, Yaw: ${coords[1].toFixed(2)}`);
+        });
     }
 
-    // 构建提示气泡结构
-    function buildBubble(hotSpotDiv, args) {
-        const bubble = document.createElement('div');
-        bubble.classList.add('comic-bubble');
-        bubble.innerHTML = `
-            <span class="bubble-en">${args.en}</span>
-            <span class="bubble-zh">(${args.zh})</span>
-        `;
-        hotSpotDiv.appendChild(bubble);
-    }
-
-    // 点击显示气泡逻辑
-    function revealBubble(event) {
-        const target = event.target.closest('.hit-target');
-        if (target) {
-            target.classList.add('activated');
+    function buildCloud(hotSpotDiv, args) {
+        // 核心修改：从配置文件读取宽高并应用
+        const config = viewer.getConfig().hotSpots.find(h => h.createTooltipArgs === args);
+        if(config) {
+            hotSpotDiv.style.width = config.width + "px";
+            hotSpotDiv.style.height = config.height + "px";
         }
+        
+        if(debugMode) hotSpotDiv.classList.add('debug-visible');
+
+        const wrap = document.createElement('div');
+        wrap.classList.add('bubble-container');
+        wrap.innerHTML = `
+            <div class="cloud-wrapper">
+                <div class="puff pt1"></div><div class="puff pt2"></div><div class="puff pt3"></div>
+                <div class="puff pb1"></div><div class="puff pb2"></div><div class="puff pb3"></div>
+                <div class="puff pl"></div><div class="puff pr"></div>
+                <div class="cloud-main"><div class="text-content">${args}</div></div>
+                <div class="cloud-tail"><div class="dot d1"></div><div class="dot d2"></div></div>
+            </div>
+        `;
+        hotSpotDiv.appendChild(wrap);
+    }
+
+    function active(event) {
+        const target = event.target.closest('.hit-target');
+        if (target) target.classList.add('activated');
     }
 </script>
 
