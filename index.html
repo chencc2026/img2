@@ -58,7 +58,7 @@
 <div id="debug-panel">坐标调试模式已开启<br>Pitch: 0.0, Yaw: 0.0</div>
 
 <script>
-    const debugMode = false; 
+    const debugMode = flase; 
     const imageUrl = "https://chencc2026.github.io/img2/pic.png";
     let viewer;
 
@@ -76,34 +76,42 @@
             "hotSpots": [
                 {
                     "pitch": -2.16, "yaw": -60.34, 
-                    "width": 300, "height": 550,
+                    "width": 300, "height": 350,
                     "cssClass": "hit-target",
                     "createTooltipFunc": buildCloud,
-                    "createTooltipArgs": "The man <span class='red-txt'>watches the phone</span> while walking. <br><span class='zh-txt'>(走路看手机)</span>",
+                    "createTooltipArgs": "The man <span class='red-txt'>watches the phone while walking</span>. <br><span class='zh-txt'>(走路看手机)</span>",
                     "clickHandlerFunc": active
                 },
                 {
-                    "pitch": -38.96, "yaw": -110.81, 
-                    "width": 300, "height": 600,
+                    "pitch": -27.09, "yaw": -108.2, 
+                    "width": 300, "height": 300,
                     "cssClass": "hit-target",
                     "createTooltipFunc": buildCloud,
-                    "createTooltipArgs": "The boy doesn't <span class='red-txt'>wear a helmet</span>.<br>The boy <span class='red-txt'>rides under 12</span>. <br><span class='zh-txt'>(12岁以下骑车)</span>",
+                    "createTooltipArgs": "The traffic light is red,the boy <span class='red-txt'>goes</span>.<br><span class='zh-txt'>(闯红灯)</span>",
                     "clickHandlerFunc": active
                 },
                 {
-                    "pitch": -36.14, "yaw": -17.6, 
-                    "width": 250, "height": 650,
+                    "pitch": -43.31, "yaw": -18.07, 
+                    "width": 250, "height": 350,
                     "cssClass": "hit-target",
                     "createTooltipFunc": buildCloud,
                     "createTooltipArgs": "The boy <span class='red-txt'>plays</span> on the road.",
                     "clickHandlerFunc": active
                 },
                 {
-                    "pitch": -4.6, "yaw": 68.25, 
-                    "width": 250, "height": 600,
+                    "pitch": -58.45, "yaw": -113.61, 
+                    "width": 250, "height": 300,
                     "cssClass": "hit-target",
                     "createTooltipFunc": buildCloud,
-                    "createTooltipArgs": "The man doesn't<br><span class='red-txt'>wear a helmet</span>.",
+                    "createTooltipArgs": "The boy <span class='red-txt'>runs</span> on the road.",
+                    "clickHandlerFunc": active
+                },
+                {
+                    "pitch": -4.6, "yaw": 68.25, 
+                    "width": 250, "height": 350,
+                    "cssClass": "hit-target",
+                    "createTooltipFunc": buildCloud,
+                    "createTooltipArgs": "The man doesn't<br><span class='red-txt'>wear a helmet</span>. <br><span class='zh-txt'>(没戴头盔)</span>.",
                     "clickHandlerFunc": active
                 },
                 {
@@ -111,7 +119,7 @@
                     "width": 220, "height": 250,
                     "cssClass": "hit-target",
                     "createTooltipFunc": buildCloud,
-                    "createTooltipArgs": "The man <span class='red-txt'>watches the phone</span> while driving. <br><span class='zh-txt'>(开车看手机)</span>",
+                    "createTooltipArgs": "The man <span class='red-txt'>watches the phone while driving</span>. <br><span class='zh-txt'>(开车看手机)</span>",
                     "clickHandlerFunc": active
                 }
             ]
